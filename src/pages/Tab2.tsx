@@ -1,5 +1,7 @@
 import {
   CreateAnimation,
+  Gesture,
+  GestureDetail,
   IonButton,
   IonButtons,
   IonContent,
@@ -8,15 +10,47 @@ import {
   IonPage,
   IonTitle,
   IonToolbar,
+  createGesture,
   useIonViewDidEnter,
 } from '@ionic/react';
 import React, { useRef } from 'react';
 
 const Tab2: React.FC = () => {
   const animationRef = useRef<CreateAnimation | null>(null);
+  const elementRef = useRef<HTMLDivElement | null>(null);
+
+  const onMoveHandler = (detail: GestureDetail) => {
+    const x = detail.currentX - detail.startX;
+    const y = detail.currentY - detail.startY;
+    if (elementRef.current) {
+      elementRef.current.style.transform = `translate(${x}px, ${y}px)`;
+    }
+  };
+
+  const onMoveEnd = (detail: GestureDetail) => {
+    if (elementRef.current) {
+      elementRef.current.style.transform = `translate(0px, 0px)`;
+      elementRef.current.style.transition = `500ms ease-out`;
+    }
+  };
+
+  const onStartHandler = (detail: GestureDetail) => {
+    if (elementRef.current) {
+      elementRef.current.style.transition = 'none';
+    }
+  };
 
   useIonViewDidEnter(() => {
-    // animationRef.current?.animation.play();
+    animationRef.current?.animation.play();
+    const gesture: Gesture = createGesture({
+      el: elementRef.current!,
+      gestureName: 'my-gesture',
+      onMove: onMoveHandler,
+      threshold: 0,
+      onEnd: onMoveEnd,
+      onStart: onStartHandler,
+    });
+    gesture.enable();
   });
   return (
     <IonPage>
@@ -28,7 +62,7 @@ const Tab2: React.FC = () => {
           </IonButtons>
         </IonToolbar>
       </IonHeader>
-      <IonContent className='ion-padding'>
+      <IonContent className='ion-padding' scrollY={false}>
         <CreateAnimation
           duration={2000}
           iterations={Infinity}
@@ -44,6 +78,10 @@ const Tab2: React.FC = () => {
             Test Ionic
           </IonButton>
         </CreateAnimation>
+        <div
+          ref={elementRef}
+          style={{ width: 50, height: 50, background: 'red' }}
+        ></div>
       </IonContent>
     </IonPage>
   );
